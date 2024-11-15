@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOCX to Markdown Converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="max-w-md p-6 bg-white rounded-lg shadow-lg">
+        <h1 class="text-2xl font-semibold text-center mb-6">DOCX to Markdown Converter</h1>
+        <div class="mb-4">
+            <label for="folderPath" class="block text-gray-700">Select Folder:</label>
+            <input type="file" id="folderPath" class="mt-1 block w-full" webkitdirectory directory multiple>
+        </div>
+        <div class="mb-4">
+            <label class="inline-flex items-center">
+                <input type="checkbox" id="recursive" class="form-checkbox h-5 w-5 text-indigo-600">
+                <span class="ml-2">Search subfolders</span>
+            </label>
+            <label class="inline-flex items-center ml-4">
+                <input type="checkbox" id="mediaExtraction" class="form-checkbox h-5 w-5 text-indigo-600">
+                <span class="ml-2">Extract media</span>
+            </label>
+        </div>
+        <button id="convertBtn" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded hover:bg-indigo-500">Convert</button>
+        <div class="mt-4">
+            <div id="progressBar" class="bg-gray-300 h-4 w-full rounded-full overflow-hidden">
+                <div id="progress" class="h-full bg-indigo-600 w-0"></div>
+            </div>
+            <p id="percentageLabel" class="text-center mt-2">0%</p>
+        </div>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>
