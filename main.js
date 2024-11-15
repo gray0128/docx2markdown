@@ -3,58 +3,32 @@ const fs = require('fs');
 const path = require('path');
 const pypandoc = require('pypandoc');
 
-// 递归地获取文件夹内的所有文件
-function getFiles(folderPath, recursive) {
-    let files = [];
-    if (recursive) {
-        const walkSync = (dir, filelist = []) => {
-            fs.readdirSync(dir).forEach(file => {
-                const filePath = path.join(dir, file);
-                if (fs.statSync(filePath).isDirectory()) {
-                    filelist = walkSync(filePath, filelist);
-                } else {
-                    filelist.push(filePath);
-                }
-            });
-            return filelist;
-        };
-        files = walkSync(folderPath);
-    } else {
-        files = fs.readdirSync(folderPath).map(file => path.join(folderPath, file));
-    }
-    return files.filter(file => path.extname(file) === '.docx');
-}
-
 // DOCX to Markdown 转换
-async function convertDocxToMd(folderPath, recursive, mediaExtraction) {
-    const docxFiles = getFiles(folderPath, recursive);
-    const totalFiles = docxFiles.length;
-    const mediaFolder = path.join(folderPath, "media");
+async function convertDocxToMd(filePath, mediaExtraction) {
+    const mediaFolder = path.join(path.dirname(filePath), "media");
     
     if (mediaExtraction) {
         fs.mkdirSync(mediaFolder, { recursive: true });
     }
 
-    for (let i = 0; i < totalFiles; i++) {
-        const docxFile = docxFiles[i];
-        const mdPath = path.join(path.dirname(docxFile), path.basename(docxFile, '.docx') + '.md');
-        
-        let extraArgs = ['--wrap=none'];
-        if (mediaExtraction) {
-            extraArgs.push(`--extract-media=${mediaFolder}`);
-        }
-
-        await new Promise((resolve) => {
-            pypandoc.convertFile(docxFile, 'md', { outputfile: mdPath, extraArgs }, (err) => {
-                if (err) {
-                    console.error(err);
-                }
-                resolve();
-            });
-        });
-
-        updateProgress((i + 1) / totalFiles * 100);
+    const mdPath = path.join(path.dirname(filePath), path.basename(filePath, '.docx') + '.md');
+    
+    let extraArgs = ['--wrap=none'];
+    if (mediaExtraction) {
+        extraArgs.push(`--extract-media=${mediaFolder}`);
     }
+
+    await new Promise((resolve, reject) => {
+        pypandoc.convertFile(filePath, 'md', { outputfile: mdPath, extraArgs }, (err) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    });
+
+    updateProgress(100);
 }
 
 // 更新进度条和百分比
@@ -68,13 +42,18 @@ function updateProgress(value) {
 
 // 事件处理
 document.getElementById('convertBtn').addEventListener('click', async () => {
-    const folderPath = document.getElementById('folderPath').files[0].path;
-    const recursive = document.getElementById('recursive').checked;
+    const fileInput = document.getElementById('fileInput');
     const mediaExtraction = document.getElementById('mediaExtraction').checked;
 
+    if (!fileInput.files.length) {
+        alert('Please select a DOCX file.');
+        return;
+    }
+
+    const filePath = fileInput.files[0].path;
+    
     try {
-        await convertDocxToMd(folderPath, recursive, mediaExtraction);
-        updateProgress(100);
+        await convertDocxToMd(filePath, mediaExtraction);
         document.getElementById('percentageLabel').textContent = 'Done!';
     } catch (err) {
         console.error('Conversion failed:', err);
