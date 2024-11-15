@@ -1,4 +1,3 @@
-// 文件系统和路径处理
 const fs = require('fs');
 const path = require('path');
 const pypandoc = require('pypandoc');
@@ -28,7 +27,11 @@ async function convertDocxToMd(filePath, mediaExtraction) {
         });
     });
 
-    updateProgress(100);
+    // 使用 requestAnimationFrame 确保UI更新在主线程上执行
+    requestAnimationFrame(() => {
+        updateProgress(100);
+        document.getElementById('percentageLabel').textContent = 'Done!';
+    });
 }
 
 // 更新进度条和百分比
@@ -36,8 +39,11 @@ function updateProgress(value) {
     const progressBar = document.getElementById('progress');
     const percentageLabel = document.getElementById('percentageLabel');
 
-    progressBar.style.width = `${value}%`;
-    percentageLabel.textContent = `${Math.round(value)}%`;
+    // 使用 requestAnimationFrame 确保UI更新在主线程上执行
+    requestAnimationFrame(() => {
+        progressBar.style.width = `${value}%`;
+        percentageLabel.textContent = `${Math.round(value)}%`;
+    });
 }
 
 // 事件处理
@@ -53,10 +59,14 @@ document.getElementById('convertBtn').addEventListener('click', async () => {
     const filePath = fileInput.files[0].path;
     
     try {
+        // 开始转换前更新进度条
+        updateProgress(0);
         await convertDocxToMd(filePath, mediaExtraction);
-        document.getElementById('percentageLabel').textContent = 'Done!';
     } catch (err) {
         console.error('Conversion failed:', err);
-        document.getElementById('percentageLabel').textContent = 'Error!';
+        // 使用 requestAnimationFrame 确保错误信息更新在主线程上执行
+        requestAnimationFrame(() => {
+            document.getElementById('percentageLabel').textContent = 'Error!';
+        });
     }
 });
